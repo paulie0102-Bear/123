@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>PokeMaster 素材下載器</h1>
+    <button onclick="downloadPokeMasterAssets()">點我開始下載 96 張圖片</button>
+
+    <script>
+    async function downloadPokeMasterAssets() {
+        const megaMap = {
+            3: 10001, 6: [10034, 10035], 9: 10002, 15: 10003, 18: 10004, 65: 10005, 80: 10071, 94: 10006, 
+            115: 10007, 127: 10008, 130: 10009, 142: 10010, 150: [10043, 10044], 181: 10012, 208: 10013, 
+            212: 10014, 214: 10015, 229: 10016, 248: 10017, 254: 10019, 257: 10020, 260: 10021, 282: 10022, 
+            302: 10066, 303: 10023, 306: 10024, 308: 10025, 310: 10026, 319: 10070, 323: 10069, 334: 10067, 
+            354: 10027, 359: 10028, 362: 10068, 373: 10029, 376: 10030, 380: 10031, 381: 10032, 382: 10077, 
+            383: 10078, 384: 10033, 428: 10073, 445: 10036, 448: 10037, 460: 10038, 475: 10079
+        };
+
+        const helper = async (url, name) => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            await new Promise(r => setTimeout(r, 150));
+        };
+
+        alert("準備下載，請在稍後的瀏覽器提示中點擊「允許下載多個檔案」！");
+
+        for (const [pokedexId, apiIds] of Object.entries(megaMap)) {
+            const idList = Array.isArray(apiIds) ? apiIds : [apiIds];
+            for (let i = 0; i < idList.length; i++) {
+                const mId = idList[i];
+                let baseName = pokedexId;
+                if (idList.length > 1) baseName += (i === 0 ? 'x' : 'y');
+
+                await helper(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${mId}.png`, `${baseName}_normal.png`);
+                await helper(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${mId}.png`, `${baseName}_shiny.png`);
+            }
+        }
+        alert("下載完成！");
+    }
+    </script>
+</body>
+</html>
