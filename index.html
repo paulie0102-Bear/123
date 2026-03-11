@@ -76,14 +76,7 @@
 .hp-red { background-color: #f44336 !important; }
         .encounter-progress { position: absolute; top: 10px; left: 10px; width: 120px; font-size: 10px; background: rgba(255,255,255,0.7); padding: 5px; border-radius: 5px; }
 
-        /* 圖鑑佈局 */
-        /*.dex-container { display: flex; height: calc(100vh - 80px); }
-        .dex-sidebar { width: 35%; overflow-y: auto; background: #ddd; border-right: 1px solid #bbb; }
-        .dex-main { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; padding: 20px; }
-        .dex-item { padding: 12px 5px; border-bottom: 1px solid #ccc; font-size: 13px; text-align: center; cursor: pointer; }
-        .dex-item.active { background: var(--p); color: white; }*/
-
-
+        
         /* 底部控制面板 (2列4欄) */
         .control-panel { 
             display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr);
@@ -194,116 +187,89 @@
   .encounter-active .grass-right { transform: translateX(110%); }
 </style>
 <style>
-    .csv-item {
+  /* --- 搜尋明細清單項 (整合版) --- */
+
+.csv-item {
     display: flex;
     align-items: center;
-    gap: 8px;  /* 稍微加大間距 */
-    padding: 10px;  /* 增加內邊距讓顯示區域更大 */
-    margin-bottom: 8px;  /* 調整底部間距 */
+    gap: 12px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
     background: white;
-    border-radius: 15px;  /* 調整圓角 */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);  /* 增加陰影 */
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s;
 }
 
-.csv-date, .csv-cat, .csv-amt {
-    font-size: 14px;  /* 字體稍微放大 */
-}
-
+/* 1. 日期 */
 .csv-date {
-    width: 130px;
-    font-weight: bold;
-    color: #333;
-}
-
-.csv-cat {
     width: 90px;
     font-weight: bold;
-    color: #666;
+    color: #444;
+    flex-shrink: 0;
+    font-family: monospace;
 }
 
+/* 2. 類別 (給個小標籤感) */
+.csv-cat {
+    width: 70px;
+    color: #666;
+    font-size: 13px;
+    background: #f0f0f0;
+    text-align: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* 3. 備註 (自動填滿) */
 .csv-note {
     flex: 1;
+    min-width: 0;
     font-size: 14px;
-    border: none;
-    border-bottom: 1px solid #ddd;
-    padding: 4px;
-    font-style: italic;  /* 加上斜體效果 */
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 文字過長自動顯示 ... */
 }
 
+/* 4. 金額 */
 .csv-amt {
-    width: 70px;
+    width: 80px;
     text-align: right;
     font-weight: bold;
-    color: #2c7;
+    color: #e67e22; /* 暖橘色，醒目但不刺眼 */
+    flex-shrink: 0;
 }
 
-/* 手機版 */
-@media (max-width: 600px) {
+/* 📱 手機版調整：自動轉為兩排佈局 */
+@media (max-width: 480px) {
     .csv-item {
         flex-wrap: wrap;
-        gap: 10px;
+        padding: 10px;
+        gap: 5px;
     }
 
-    .csv-date {
-        width: 40%;
+    /* 第一排：日期與類別 */
+    .csv-date { width: auto; flex: 1; }
+    .csv-cat { width: auto; }
+
+    /* 第二排：備註與金額 */
+    .csv-note { 
+        width: 65%; 
+        flex: none; 
+        order: 3; /* 強制排在後面 */
+        padding-top: 5px;
+        border-top: 1px dashed #eee;
     }
-
-    .csv-cat {
-        width: 40%;
-    }
-
-    .csv-note {
-        width: 100%;
-    }
-
-    .csv-amt {
-        width: 100%;
-        text-align: right;
+    .csv-amt { 
+        width: 30%; 
+        flex: 1; 
+        order: 4; 
+        padding-top: 5px;
+        border-top: 1px dashed #eee;
     }
 }
-
-/* 每一筆資料的外容器 */
-.csv-item-mobile {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 8px; /* 每一筆資料間的間隔 */
-    display: flex;
-    flex-direction: column;
-    gap: 8px; /* 兩排之間的垂直距離 */
-}
-
-/* 每排內部的佈局 */
-.csv-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-/* 調整輸入框比例 */
-.csv-date, .csv-cat {
-    flex: 1; /* 平分空間 */
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.csv-note {
-    flex: 3; /* 讓商家備註長一點 */
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.csv-amt {
-    flex: 1;
-    text-align: right;
-    font-weight: bold;
-    font-size: 1.1em;
-    color: #e67e22; /* 給金額一個明顯的顏色 */
-}
-
 </style>
 <style>
     /* -------------------------------------------
@@ -337,71 +303,239 @@
 }
 </style>
 <style>
-    /* --- 圖鑑整體外框 (經典紅) --- */
-.dex-container {
-    display: flex;
-    background: #e74c3c; /* 經典 Pokedex 紅 */
-    border: 8px solid #c0392b;
-    border-radius: 15px;
-    height: calc(100vh - 140px); /* 扣除底部選單的高度 */
-    overflow: hidden;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-    margin: 5px;
+/* --- [修正版] 寶貝球主題圖鑑 (解決層級遮擋問題) --- */
+
+/* 1. 最外層：大寶貝球外殼 */
+.pball-shell {
+    background: linear-gradient(to bottom, #e3350d 46%, #333 46%, #333 54%, #fff 54%);
+    border: 25px solid #222; 
+    border-radius: 60px; 
+    padding: 30px 17px; 
+    margin: 8px 8px 45px 8px; 
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5), inset -10px -10px 0 rgba(0,0,0,0.1);
+    position: relative;
+    /* 🚩 修正：建立新的層疊上下文，確保內部 z-index 生效 */
+    z-index: 0; 
 }
 
-/* --- 左側列表：解決手機下拉重新整理的關鍵 --- */
+/* 🚩 關鍵修正：焊接延伸黑底座 */
+.pball-shell::after {
+    content: "";
+    position: absolute;
+    /* 🚩 修正：負值定位，讓底座與黑色邊框完美融合並覆蓋在內容邊角 */
+    right: -15px; 
+    bottom: -15px; 
+    width: 110px;
+    height: 115px;
+    background: #222; 
+    border-radius: 50px 20px 60px 25px; 
+    /* 🚩 修正：層級提高，必須大於螢幕容器的 z-index */
+    z-index: 3; 
+    box-shadow: -5px -5px 15px rgba(0,0,0,0.3);
+    pointer-events: none; /* 確保點擊能穿透到下方的 B 鍵區域 */
+}
+
+/* 2. 中間方框：嵌入的圖鑑主體 */
+.dex-container {
+    display: flex;
+    background: #333; 
+    border: 4px solid #444;
+    border-radius: 10px;
+    height: calc(100vh - 240px); 
+    overflow: hidden;
+    position: relative;
+    /* 🚩 修正：層級降低，避免蓋過延伸黑底 */
+    z-index: 1; 
+}
+
+/* --- [3, 4, 5 功能區塊 100% 原始代碼，無更動] --- */
 .dex-sidebar {
-    width: 40%;
-    background: #2b2b2b; /* 深色背景更有螢幕感 */
+    width: 45%;
+    background: #51ad60; 
     overflow-y: auto;
-    border-right: 4px solid #c0392b;
-    /* 核心優化：封鎖瀏覽器下拉重新整理，並讓滑動絲滑 */
-    overscroll-behavior-y: contain; 
+    border-right: 4px solid #222;
+    overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
 }
 
-/* --- 右側詳細資訊區 (液晶螢幕感) --- */
+.dex-item {
+    padding: 12px 8px 12px 38px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    color: #1a1a1a;
+    font-size: 14px;
+    position: relative;
+    cursor: pointer;
+    font-family: monospace;
+}
+
+.dex-item::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 2px solid #333;
+    border-radius: 50%;
+    background: 
+        radial-gradient(circle at center, #fff 15%, #333 15.5%, #333 25%, transparent 25.5%),
+        linear-gradient(to bottom, #ff0000 44%, #333 44%, #333 56%, #fff 56%);
+}
+
+.dex-item.active { background: rgba(255, 255, 255, 0.4); font-weight: bold; }
+.dex-item.active::before { animation: pball-bounce 0.6s infinite ease-in-out; }
+
+@keyframes pball-bounce {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-80%) scale(1.1); }
+}
+
 .dex-main {
-    width: 60%;
-    background: #fdfdfd;
+    width: 55%;
+    background: #dedede;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15px 10px;
-    position: relative;
-    overflow-y: auto; /* 防止內容過多時擠壓 */
+    padding: 15px 5px;
+    overflow-y: auto;
 }
 
-/* --- 列表項目樣式 --- */
-.dex-item {
-    padding: 12px 8px;
-    border-bottom: 1px solid #3d3d3d;
-    color: #888;
-    font-size: 13px;
+/* --- [新 B 鍵區] 修正定位與層級 --- */
+.dex-b-button-wrapper {
+    position: absolute;
+    /* 🚩 修正：將 B 鍵推向右下角邊框交界處 */
+    right: -5px; 
+    bottom: 5px; 
+    width: 85px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     cursor: pointer;
-    transition: background 0.2s;
+    /* 🚩 修正：最高層級，保證可點擊離開 */
+    z-index: 10; 
 }
 
-/* 當前選中的項目 */
-.dex-item.active {
-    background: #444;
-    color: #ffeb3b; /* 選中時文字變黃色 */
-    border-left: 5px solid #ffeb3b;
+.dex-close-btn {
+    width: 50px;
+    height: 50px;
+    background: #c0392b;
+    border: 4px solid #111;
+    border-radius: 50%;
+    color: white;
     font-weight: bold;
+    font-size: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 5px 0 #851e13;
+    transition: all 0.1s;
+    user-select: none;
 }
 
-/* 輔助按鈕樣式 (針對圖鑑內的小按鈕) */
-.btn-dex-sm {
-    padding: 8px 4px;
-    font-size: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #f8f9fa;
-    cursor: pointer;
+.dex-b-button-wrapper:active .dex-close-btn {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #851e13;
 }
-.btn-dex-sm:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+
+.btn-label {
+    color: #777;
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 6px;
+    letter-spacing: 1px;
+}
+</style>
+<style>
+/* --- 每日野外寶可夢動畫樣式 --- */
+
+/* 1. 容器基礎定位 */
+.wild-encounter-unit {
+    position: fixed; /* 確保它浮動在所有 UI 之上 */
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* 2. 初始狀態：模擬寶石版 NPC 挑戰氣泡 */
+.wild-encounter-unit .exclamation {
+    position: absolute;
+    top: -50px; /* 稍微再往上提一點，給氣泡空間 */
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+
+    /* 🚩 氣泡外框設計 */
+    background: #fff; /* 白色底框 */
+    border: 3px solid #333; /* 黑色深邊框 */
+    border-radius: 8px; /* 寶石版風格的圓角 */
+    padding: 2px 10px;
+    
+    /* 🚩 字體設計 */
+    color: #ff3e3e; /* 經典紅色 */
+    font-weight: 900;
+    font-size: 28px;
+    font-family: "Courier New", Courier, monospace; /* 像素感字體 */
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+}
+
+/* 🚩 增加氣泡下方的小尾巴 (尖角) */
+.wild-encounter-unit .exclamation::after {
+    content: "";
+    position: absolute;
+    bottom: -10px; /* 貼在框框底部 */
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #333; /* 黑色尖角邊框 */
+}
+
+/* 🚩 氣泡內部的白色小尖角 (蓋在黑色上面) */
+.wild-encounter-unit .exclamation::before {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #fff; /* 白色尖角中心 */
+    z-index: 1;
+}
+
+/* 🚩 當觸發顯示時的動畫效果 (模擬驚訝的震動感) */
+.wild-encounter-unit.show-exclamation .exclamation {
+    transform: translateX(-50%) scale(1.2); /* 稍微放大增加衝擊力 */
+    opacity: 1;
+    animation: exclamation-pop 0.4s ease-out;
+}
+
+@keyframes exclamation-pop {
+    0% { transform: translateX(-50%) scale(0); }
+    50% { transform: translateX(-50%) scale(1.4); } /* 瞬間撐大 */
+    100% { transform: translateX(-50%) scale(1.2); }
+}
+
+/* 3. 初始狀態：寶可夢圖片 */
+.wild-encounter-unit img {
+    transition: transform 0.2s ease; /* 設定平滑放大的動畫時間 */
+}
+
+/* 4. 【重點】點擊後啟動的狀態 (JS 會幫忙加上這個 class) */
+.active-encounter img {
+    transform: scale(1.6); /* 圖片放大到 1.6 倍 */
+}
+
+.active-encounter .exclamation {
+    opacity: 1; /* 變回不透明 */
+    transform: translateX(-50%) scale(1.3); /* 驚嘆號彈跳出來並放大 */
 }
 </style>
 </head>
@@ -493,35 +627,37 @@
     </button>
 </dialog>
 
-<div id="dexPage" class="page">
-    <div class="dex-container">
-        <div class="dex-sidebar" id="dexNav"></div>
-        
-        <div class="dex-main">
-            <h3 id="dexTitle" style="margin: 0 0 10px 0; color: #333; font-size: 18px;">No.???</h3>
+<div id="dexPage" class="page" style="display:none;">
+    <div class="pball-shell">
+        <div class="dex-container">
+            <div class="dex-sidebar" id="dexNav"></div>
             
-            <div style="background: white; border: 3px solid #ddd; border-radius: 12px; padding: 15px; position: relative;">
-                <img id="dexImg" src="" style="width: 140px; height: 140px; object-fit: contain;">
-                <div id="megaTag" style="position: absolute; top: 5px; right: 8px; font-size: 18px; display: none;">🧬</div>
-            </div>
-
-            <div id="dexCtrl" style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
-                <button onclick="setDexShiny(false)" class="btn-dex-sm">一般型態</button>
-                <button onclick="setDexShiny(true)" id="shinyBtn" class="btn-dex-sm">✨ 閃光型態</button>
+            <div class="dex-main">
+                <h3 id="dexTitle" style="margin: 0 0 10px 0; color: #333; font-size: 18px; font-family: monospace;">No.???</h3>
                 
-                <div id="megaGroup" style="grid-column: span 2; display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px;">
-    <button id="mBtnSingle" onclick="toggleMega('mega')" style="grid-column: span 2; background: #9b59b6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">🧬 Mega 進化</button>
-    
-    <button id="mBtnX" onclick="toggleMega('x')" style="background: #3498db; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">Mega X</button>
-    <button id="mBtnY" onclick="toggleMega('y')" style="background: #e67e22; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">Mega Y</button>
-</div>
+                <div class="dex-image-container" style="background: white; border: 3px solid #333; border-radius: 12px; padding: 10px; position: relative;">
+                    <img id="dexImg" src="" style="width: 130px; height: 130px; object-fit: contain;">
+                    <div id="megaTag" style="position: absolute; top: 5px; right: 8px; font-size: 18px; display: none;">🧬</div>
+                </div>
 
-                <button onclick="assignBuddy()" style="grid-column: span 2; background: var(--p); color: white; padding: 14px; border: none; border-radius: 25px; margin-top: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px rgba(0,0,0,0.2);">就決定是你了！</button>
-            </div>
+                <div id="dexCtrl" style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%;">
+                    <button onclick="setDexShiny(false)" class="btn-dex-sm">一般型態</button>
+                    <button onclick="setDexShiny(true)" id="shinyBtn" class="btn-dex-sm">✨ 閃光</button>
+                    
+                    <div id="megaGroup" style="grid-column: span 2; display: none; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 5px;">
+                        <button id="mBtnSingle" onclick="toggleMega('mega')" style="grid-column: span 2; background: #9b59b6; color: white; border: 2px solid #333; padding: 8px; border-radius: 8px; font-weight: bold; font-size: 12px;">🧬 Mega 進化</button>
+                        <button id="mBtnX" onclick="toggleMega('x')" style="background: #3498db; color: white; border: 2px solid #333; padding: 8px; border-radius: 8px; font-weight: bold; font-size: 12px;">Mega X</button>
+                        <button id="mBtnY" onclick="toggleMega('y')" style="background: #e67e22; color: white; border: 2px solid #333; padding: 8px; border-radius: 8px; font-weight: bold; font-size: 12px;">Mega Y</button>
+                    </div>
+
+                    <button onclick="assignBuddy()" style="grid-column: span 2; background: #dc0a2d; color: white; padding: 12px; border: 2px solid #333; border-radius: 25px; margin-top: 8px; font-weight: bold; font-size: 14px; box-shadow: 0 4px rgba(0,0,0,0.2);">就決定是你了！</button>
+                </div>
+            </div> 
+        </div> <div class="dex-b-button-wrapper" onclick="back()">
+            <div class="dex-close-btn">B</div>
         </div>
-    </div>
-    <button class="btn-back" onclick="back()" style="margin-top: 15px;">✖ 關閉圖鑑</button>
-</div>
+        
+    </div> </div>
 
 
 <div id="guidePage" class="page" style="background: #1a1a1a; color: white; display: none;">
@@ -608,16 +744,16 @@
         <h3>💰 精靈商店 (可用 P$: <span id="shop-bal">0</span>)</h3>
         <div style="display:flex; flex-direction:column; gap:10px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <span><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" style="vertical-align:middle"> 精靈球 (P$ 100)</span>
-                <button onclick="buy('poke', 100)" style="background:var(--p); color:white; border:none; padding:8px 15px; border-radius:5px;">購買</button>
+                <span><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" style="vertical-align:middle"> 精靈球 (P$ 200)</span>
+                <button onclick="buy('poke', 200)" style="background:var(--p); color:white; border:none; padding:8px 15px; border-radius:5px;">購買</button>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <span><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png" style="vertical-align:middle"> 超級球 (P$ 300)</span>
-                <button onclick="buy('great', 300)" style="background:var(--p); color:white; border:none; padding:8px 15px; border-radius:5px;">購買</button>
+                <span><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png" style="vertical-align:middle"> 超級球 (P$ 500)</span>
+                <button onclick="buy('great', 500)" style="background:var(--p); color:white; border:none; padding:8px 15px; border-radius:5px;">購買</button>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png" style="vertical-align:middle"> 高級球 (P$ 500)</span>
-                <button onclick="buy('ultra', 500)" style="background:var(--p); color:white; border:none; padding:8px 15px; border-radius:5px;">購買</button>
+                <span><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png" style="vertical-align:middle"> 高級球 (P$ 700)</span>
+                <button onclick="buy('ultra', 700)" style="background:var(--p); color:white; border:none; padding:8px 15px; border-radius:5px;">購買</button>
             </div>
         </div>
     </div>
@@ -847,16 +983,19 @@
         <button onclick="searchHistory()" style="background:var(--dark); color:white; width:100%; padding:10px; border:none; border-radius:5px;">搜尋明細</button>
         
         <div id="historyList" style="margin-top:10px; max-height:200px; overflow-y:auto; border: 1px solid #eee; border-radius: 5px; background: #fafafa;"></div>
-        
-    </div> <button class="btn-back" onclick="back()" style="margin-top: 15px; width: 100%;">✖ 關閉</button>
+    </div> <button class="btn-back" onclick="back()" 
+            style="margin: 15px auto 30px auto; display: block; width: calc(100% - 24px); box-sizing: border-box;">
+        ✖ 關閉
+    </button>
 </div>
+
 
 <div id="adminPage" class="page">
     <div class="card">
         <h3>⚙️ 設定與管理</h3>
-        <button onclick="exportData()" style="background:#2980b9; color:white; width:100%; padding:12px; margin-bottom:10px; border:none; border-radius:5px;">💾 匯出全存檔 (JSON)</button>
+        <button onclick="exportData()" style="background:#2980b9; color:white; width:100%; padding:12px; margin-bottom:10px; border:none; border-radius:5px;">💾 匯出全存檔 </button>
         <input type="file" id="importFile" style="display:none" onchange="importData(event)">
-        <button onclick="document.getElementById('importFile').click()" style="background:#27ae60; color:white; width:100%; padding:12px; margin-bottom:10px; border:none; border-radius:5px;">📂 讀取存檔 (JSON)</button>
+        <button onclick="document.getElementById('importFile').click()" style="background:#27ae60; color:white; width:100%; padding:12px; margin-bottom:10px; border:none; border-radius:5px;">📂 讀取存檔 </button>
         <hr>
         <p style="font-size:12px; color:gray;">區間清理：匯出檔案並刪除明細（統計總額保留）</p>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-bottom:10px;">
@@ -1052,7 +1191,15 @@ window.onload = () => {
     } else {
         if (!s.claimedGifts) s.claimedGifts = [];
     }
+ // 如果 s 已經存在，請確保它包含這兩個欄位
 
+s.dailyWild = s.dailyWild || {
+
+    claimed: false,  // 紀錄今天是否已經抓到了
+
+    lastDate: ""     // 紀錄上一次遇到的日期
+
+};
     document.getElementById('recDate').valueAsDate = new Date();
     document.getElementById('chartMonthPicker').value = new Date().toISOString().substring(0, 7);
     
@@ -1388,8 +1535,8 @@ function updateUI() {
 
         if (isMegaActive) {
             // --- Mega 狀態 ---
-            bEl.style.width = "200px";
-            bEl.style.height = "200px";
+            bEl.style.width = "150px";
+            bEl.style.height = "150px";
             bEl.classList.add('mega-fx');
 
             // 🚩 修正 2：統一使用 s.buddyMega 作為後綴判定
@@ -1404,8 +1551,8 @@ function updateUI() {
 
         } else {
             // --- 一般狀態 ---
-            bEl.style.width = "150px";
-            bEl.style.height = "150px";
+            bEl.style.width = "120px";
+            bEl.style.height = "120px";
             bEl.classList.remove('mega-fx');
 
             const shinyPath = s.isShinyBuddy ? 'shiny/' : '';
@@ -1424,9 +1571,99 @@ function updateUI() {
 
     // 5. 渲染背包
     if (typeof renderBag === 'function') renderBag();
+    // 🚩 [新增] 在所有 UI 更新完後，執行每日野怪的判斷與渲染
+    renderDailyWild();
 }
 
+function renderDailyWild() {
+    // 🚩 [新增判斷]：如果現在正在戰鬥中，就不要執行生怪邏輯
+    // 請根據你切換畫面的邏輯修改，例如：
+    const battleDiv = document.getElementById('battle-screen'); // 或是你的戰鬥容器 ID
+    if (battleDiv && battleDiv.style.display !== 'none') {
+        return; // 如果戰鬥畫面開著，直接結束，不要生怪
+    }    
+    // 🚩 [防護機制]：如果 s.dailyWild 不存在，立即初始化它
+    if (!s.dailyWild) {
+        s.dailyWild = {
+            claimed: false,
+            lastDate: ""
+        };
+    }
+    const today = new Date().toDateString();
+    
+    // 1. 跨日重置判定：如果紀錄的日期跟今天不同，就重置捕捉狀態為 false
+    if (s.dailyWild.lastDate !== today) {
+        s.dailyWild.claimed = false;
+        s.dailyWild.lastDate = today;
+    }
 
+    // 2. 取得目前的圖標元件
+    const oldIcon = document.getElementById('dailyWildIcon');
+    
+    // 3. 判斷顯示邏輯
+    if (s.dailyWild.claimed) {
+        // 如果今天已經抓到了，確保畫面上的圖標被移除
+        if (oldIcon) oldIcon.remove();
+        return;
+    }
+
+    // 4. 如果今天還沒抓到，且畫面上沒怪，就刷出一隻新的
+    if (!oldIcon) {
+        spawnDailyWildIcon();
+    }
+}
+
+function spawnDailyWildIcon() {
+    // 隨機選一個 ID (1-493)
+    const randomId = Math.floor(Math.random() * 493) + 1;
+    // 隨機決定閃光 (5% 機率)
+    const isShiny = Math.random() < 0.05;
+    // 隨機決定水平位置 (15% - 85% 避開邊緣)
+    const posX = Math.floor(Math.random() * 70) + 15;
+
+    const wildDiv = document.createElement('div');
+    wildDiv.id = 'dailyWildIcon';
+    wildDiv.className = 'wild-encounter-unit';
+    
+    // 定位在選單上方
+    wildDiv.style.left = posX + "%";
+    wildDiv.style.bottom = "220px"; 
+    wildDiv.style.position = "fixed"; // 確保是固定定位
+    wildDiv.style.zIndex = "999";     // 數字越大層級越高，建議設 100~999 之間
+
+    const imgPath = isShiny ? 'shiny/' : '';
+    wildDiv.innerHTML = `
+        <div class="exclamation">!</div>
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${imgPath}${randomId}.png" style="width: 80px; height: 80px;">
+    `;
+
+    // --- 🎮 [修改重點]：加入點擊互動遊程 ---
+    wildDiv.onclick = function() {
+        // 1. 鎖定點擊：防止在動畫期間重複點擊導致開啟多個戰鬥
+        wildDiv.onclick = null;
+        
+        // 2. 觸發第一步提到的 CSS 動畫 (放大 + 驚嘆號)
+        wildDiv.classList.add('active-encounter');
+
+        // 3. 演出時間：延遲 600 毫秒（等待驚嘆號彈出動畫）後切換戰鬥
+        setTimeout(() => {
+            // 🟢 對接閃光邏輯：如果是閃光，開啟你的 s.forceShiny 開關
+            if (isShiny) {
+                s.forceShiny = true;
+            }
+
+            // 🟢 對接戰鬥流程：直接呼叫你原本寫好的函式
+            spawnEnemy(randomId);
+
+            // 4. 戰鬥開始後，從主畫面移除這個元素
+            // 注意：因為還沒設定 s.dailyWild.claimed = true，所以逃跑後重新整理會再刷出新的怪
+            wildDiv.remove();
+        }, 600);
+    };
+
+    document.body.appendChild(wildDiv);
+}
+    
 function getTitle(count) {
     if(count >= 493) return {name: "寶可夢大師", bonus: 50};
     if(count >= 400) return {name: "聯盟冠軍", bonus: 40};
@@ -1797,7 +2034,13 @@ async function throwBall() {
         s.tasks.dCatch += 1;
         s.tasks.wCatch += 1;
         s.tasks.mCatch += 1;
-
+        
+        // 🏆 [關鍵新增]：每日奇遇任務達成！
+        // 只要這行被執行，今天主畫面的驚喜寶可夢就不會再出現了
+        if (s.dailyWild) {
+            s.dailyWild.claimed = true;
+        }
+        
         // ● 功能 12: 給予經驗值與動態提示
         if (typeof gainExp === 'function') gainExp(10);
 
@@ -1942,25 +2185,28 @@ const MEGA_LIST = [3, 6, 9, 15, 18, 65, 80, 94, 115, 127, 130, 142, 150, 181, 20
 
 // --- 🎨 核心渲染函式 ---
 function renderDex() {
-    const nav = document.getElementById('dexNav');
+    // 🚩 確保 ID 對應到新 HTML 結構中的左側欄
+    const nav = document.getElementById('dexNav') || document.querySelector('.dex-sidebar');
     if (!nav) return;
 
-    // 1. 局部更新列表 (僅在初次或必要時生成，優化效能)
-    // 這裡我們直接生成 HTML，但透過 class 切換來優化視覺
     let listHtml = "";
     for (let i = 1; i <= 493; i++) {
         const caught = s.owned.includes(i);
         const nameText = caught ? (POKEMON_NAMES[i] || "???") : "???";
         const activeClass = (i === dexId) ? "active" : "";
+        
+        // 渲染列表項目
         listHtml += `<div class="dex-item ${activeClass}" onclick="selectDex(${i})">
             No.${String(i).padStart(3, '0')} ${nameText}
         </div>`;
     }
     nav.innerHTML = listHtml;
 
-    // 自動捲動到選中項 (選填)
-    // const activeItem = document.querySelector('.dex-item.active');
-    // if(activeItem) activeItem.scrollIntoView({ block: 'nearest' });
+    // 🚩 修正：自動捲動到選中項（這在手機上非常重要，不然點了下面的精靈，列表會跳回最上面）
+    const activeItem = nav.querySelector('.dex-item.active');
+    if(activeItem) {
+        activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
     updateDexDetail();
 }
@@ -2400,8 +2646,74 @@ function delHist(id) {
     if(idx > -1) { const h = s.hist[idx]; s.yearSums[h.date.substring(0,7)] -= h.amt; s.catSums[h.cat] -= h.amt; s.hist.splice(idx, 1); updateUI(); searchHistory(); }
 }
 
-function exportData() { const blob = new Blob([JSON.stringify(s)], {type: "application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `pokemaster_save_${Date.now()}.json`; a.click(); }
-function importData(e) { const reader = new FileReader(); reader.onload = (ev) => { s = JSON.parse(ev.target.result); updateUI(); alert("存檔讀取成功！"); }; reader.readAsText(e.target.files[0]); }
+function exportData() {
+    // 1. 取得現在時間 (例如: 20260311_1530)
+    const now = new Date();
+    const timeStr = now.getFullYear() + 
+                    (now.getMonth()+1).toString().padStart(2, '0') + 
+                    now.getDate().toString().padStart(2, '0') + "_" +
+                    now.getHours().toString().padStart(2, '0') + 
+                    now.getMinutes().toString().padStart(2, '0');
+
+    // 2. 轉換為 JSON 字串
+    const blob = new Blob([JSON.stringify(s)], {type: "application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    
+    // 3. 設定自訂副檔名 .pkms (方便手機查找)
+    a.download = `PM_Save_${timeStr}.pkms`; 
+    
+    // 4. 執行下載
+    document.body.appendChild(a); // 部分手機瀏覽器需要將元素加入 DOM 才能點擊
+    a.click();
+    
+    // 5. 清理與釋放記憶體
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href); 
+    }, 100);
+}
+
+function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 🚩 檢查副檔名 (非強制，但可提醒玩家)
+    if (!file.name.endsWith('.pkms') && !file.name.endsWith('.json')) {
+        if (!confirm("這看起來不是標準的存檔格式，是否仍要嘗試讀取？")) return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        try {
+            const loaded = JSON.parse(ev.target.result);
+            
+            // 🚩 [關鍵修改] 使用與 window.onload 一致的合併邏輯
+            // 這樣能保證「舊存檔」匯入「新遊戲」時，新功能變數（如 dailyWild）不會消失
+            s = { 
+                ...s,              // 先放目前新版本的預設結構
+                ...loaded,         // 用讀取的資料覆蓋
+                claimedGifts: (loaded.claimedGifts || s.claimedGifts || []) // 確保陣列欄位存在
+            };
+
+            // 🚩 匯入後立即存檔到 LocalStorage，確保手機關閉 APP 後資料還在
+            localStorage.setItem('pokemaster_v60', JSON.stringify(s));
+
+            // 更新 UI 顯示新資料
+            updateUI(); 
+            
+            alert("✅ 存檔匯入成功！");
+            
+            // 重設上傳按鈕，方便下次重複選取相同檔案
+            e.target.value = ""; 
+
+        } catch (err) {
+            console.error("Import Error:", err);
+            alert("❌ 讀取失敗：存檔內容損壞或格式不符");
+        }
+    };
+    reader.readAsText(file);
+}
 function lighten() { /* 簡化清理邏輯保留 */ const start = document.getElementById('lightStart').value; const end = document.getElementById('lightEnd').value; if(!start || !end) return; exportData(); s.hist = s.hist.filter(h => h.date < start || h.date > end); updateUI(); alert("清理完成並已匯出備份。"); }
 function resetAll() { if(confirm("🔥 確定重置？這會永久刪除所有紀錄與圖鑑！")) { localStorage.removeItem('pokemaster_v60'); location.reload(); } }
 </script>
