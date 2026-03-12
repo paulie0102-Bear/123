@@ -701,9 +701,12 @@
 
 
 <div id="statusPage" class="page">
-    <div class="card">
+    <div class="card" style="position: relative; padding-top: 30px;"> <div id="selected-badge-display" class="badge-avatar-wrap" onclick="openBadgeModal()">
+            <img id="current-badge-img" src="" style="display: none;">
+            <div id="no-badge-txt">配戴<br>勳章</div>
+        </div>
         <h3>👤 訓練家資訊</h3>
-        <p>當前稱號：<b id="st-title" style="color:var(--mega);">初出茅廬</b></p>
+               <div style="margin-right: 110px;"> </div> <p>當前稱號：<b id="st-title" style="color:var(--mega);">初出茅廬</b></p>
         <p>訓練家等級：<b id="st-level" style="color:var(--accent);">Lv. 1</b></p>
         <p>圖鑑進度：<span id="st-dex-count">0</span> / 493</p>
         <hr>
@@ -720,6 +723,16 @@
     </div>
     <button class="btn-back" onclick="back()">✖ 關閉</button>
 </div>
+<div id="badgeModal" class="badge-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; backdrop-filter:blur(5px);">
+    <div style="background:#1a1a1a; margin:10% auto; padding:20px; width:85%; max-width:400px; border-radius:15px; border:2px solid #444; color:white; position:relative;">
+        <span onclick="closeBadgeModal()" style="position:absolute; right:15px; top:10px; font-size:24px; cursor:pointer;">&times;</span>
+        <h3 style="text-align:center; color:gold; margin-bottom:20px;">🏆 冠軍勳章館</h3>
+        <p style="font-size:12px; text-align:center; color:#888; margin-bottom:15px;">點擊已解鎖的勳章進行配戴</p>
+        <div id="badge-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+            </div>
+    </div>
+</div>
+
 
 <div id="bagPage" class="page">
     <div class="card">
@@ -794,7 +807,7 @@
 </div>
 
 <div class="card" style="margin-top:15px; border: 2px solid #f1c40f; background: #fffdf5; padding: 15px; border-radius: 12px;">
-    <h3 style="color:#d4af37; margin-bottom:12px;">🏆 冠軍的認可 (記帳第 100 天解鎖)</h3>
+    <h3 style="color:#d4af37; margin-bottom:12px;">🏆 冠軍的認可</h3>
     <p style="font-size:12px; color:#7f8c8d; margin-bottom:10px;">獲得 5 顆高級球，並開啟**必閃**傳奇寶可夢戰鬥</p>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -921,6 +934,45 @@
 
 .champion-text {
     text-align: left;
+}
+
+
+/* 勳章大頭貼容器 - 霸氣放大版 */
+.badge-avatar-wrap {
+    position: absolute;
+    top: 45px;         /* 稍微往上調，對齊稱號頂端 */
+    right: 20px;       /* 靠右邊界 */
+    width: 135px;      /* 顯著放大 */
+    height: 135px;     /* 保持正方形 */
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 增加深色半透明圓角底座，讓金色勳章更跳出來 */
+    background: rgba(0, 0, 0, 0.25); 
+    border-radius: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+}
+
+#current-badge-img {
+    width: 125px !important;   /* 圖片本體也放大 */
+    height: 125px !important;
+    image-rendering: pixelated; /* 像素銳利化 */
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+    object-fit: contain;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 滑鼠移上去的動態反饋 */
+#current-badge-img:hover {
+    transform: scale(1.1) rotate(3deg);
+}
+
+/* 文字保護：確保左側文字有足夠空間，不會被 135px 的大勳章擋住 */
+.card p, .card h3 {
+    margin-right: 150px; 
 }
 
 </style>
@@ -1177,99 +1229,148 @@ const CHAMPION_DATA = {
     'cynthia':{ name: '神奧地區｜竹蘭的遺跡之魂', ids: [445, 448, 350] }  // 烈咬陸鯊、路卡利歐、美納斯
 };
 
+// --- [ 初始化與存檔讀取 ] ---
 window.onload = () => {
-    // --- 1. 讀取並合併存檔 ---
+    // 1. 讀取存檔
     const saved = localStorage.getItem('pokemaster_v60');
     if(saved) {
         const loaded = JSON.parse(saved);
-        s = { 
-            ...s, 
-            ...loaded, 
-            claimedGifts: (loaded.claimedGifts || []),
-            tasks: loaded.tasks || s.tasks 
-        }; 
+        s = { ...s, ...loaded }; 
     }
 
-    // --- 2. 初始化物件結構 (防止 undefined) ---
-    if (!s.claimedGifts) s.claimedGifts = [];
+    // 2. 確保關鍵變數存在（補丁防線）
+    s.claimedGifts = s.claimedGifts || [];
     s.dailyWild = s.dailyWild || { claimed: false, lastDate: "" };
-    s.tasks = s.tasks || { dailyDate: "", weeklyDate: "", dRec: 0, dCatch: 0, wRec: 0, wCatch: 0, claimed: [] };
+    if (!s.tasks) s.tasks = { claimed: [], dailyDate: "", weeklyDate: "" };
 
-    // --- 3. 執行重置檢查 (換日/換週) ---
-    checkTaskReset(); 
+    // 3. 執行重置檢查 (要在畫 UI 之前)
+    if (typeof checkTaskReset === 'function') checkTaskReset();
 
-    // --- 4. 設定 UI 預設值 (日期、月份) ---
-    const now = new Date();
-    document.getElementById('recDate').valueAsDate = now;
-    const monthStr = now.toISOString().substring(0, 7);
-    const monthPicker = document.getElementById('chartMonthPicker');
-    if (monthPicker) monthPicker.value = monthStr;
+    // 4. 設定 HTML 表單預設值
+    const recDateEl = document.getElementById('recDate');
+    const chartPickerEl = document.getElementById('chartMonthPicker');
+    if (recDateEl) recDateEl.valueAsDate = new Date();
+    if (chartPickerEl) chartPickerEl.value = new Date().toISOString().substring(0, 7);
     
-    // --- 5. 啟動各項 UI 更新功能 ---
-    updateUI();          // 渲染主畫面數據
-    updateGiftButtons(); // 鎖定領取的禮物或檢查冠軍資格
-    initCarrier();       // 🚩 初始化載具條碼 (從你第二個 onload 移過來的)
-    
-    // --- 6. 啟動野怪偵測 ---
-    if (typeof renderDailyWild === "function") {
-        renderDailyWild();
-    }
+    // 5. 更新所有按鈕與 UI
+    // 🔴 請確認你的解鎖函式到底叫哪個名稱，建議兩者都跑一次確保萬無一失
+    if (typeof updateGiftButtons === 'function') updateGiftButtons();
+    if (typeof lockClaimedGifts === 'function') lockClaimedGifts(); 
 
-    // --- 7. 定時器 ---
+    updateUI();
+    if (typeof renderTasks === 'function') renderTasks();
+    if (typeof initCarrier === 'function') initCarrier(); 
+
+    // 6. 啟動計時器
     setInterval(tickMega, 1000);
     
-    console.log("%c🚀 系統初始化完成", "color: #2ecc71; font-weight: bold;");
+    console.log("🚀 PokeMaster 啟動成功！當前狀態：", s);
 };
 
-function checkTaskReset() {
-    // 1. 安全性檢查：確保 s.tasks 結構存在
-    if (!s.tasks) {
-        s.tasks = { dailyDate: "", weeklyDate: "", dRec: 0, dCatch: 0, wRec: 0, wCatch: 0, claimed: [] };
-    }
+// 在你的全域變數 s 中加入 s.selectedBadge = null;
 
+const BADGE_DATA = {
+    kanto:  { id: 1, req: [25, 150, 151], name: "關都始源" },
+    johto:  { id: 2, req: [149, 249, 250], name: "城都龍魂" },
+    hoenn:  { id: 3, req: [382, 383, 384, 376], name: "豐緣隕石" },
+    sinnoh: { id: 4, req: [484, 483, 487, 445], name: "神奧神話" }
+};
+
+function openBadgeModal() {
+    document.getElementById('badgeModal').style.display = "block";
+    const grid = document.getElementById('badge-grid');
+    grid.innerHTML = ""; // 清空重繪
+
+    Object.keys(BADGE_DATA).forEach(key => {
+        const data = BADGE_DATA[key];
+        const owned = data.req.filter(id => s.owned.includes(id));
+        const isUnlocked = owned.length === data.req.length;
+        const missingNames = data.req.filter(id => !s.owned.includes(id)).map(id => getPkmnName(id));
+
+        const slot = document.createElement('div');
+        slot.style.cssText = `text-align:center; padding:10px; background:#252525; border-radius:10px; border:1px solid ${s.selectedBadge === data.id ? 'gold' : '#444'}; cursor:pointer;`;
+        
+        // 勳章圖片
+        const imgStyle = isUnlocked ? "filter:grayscale(0); opacity:1;" : "filter:grayscale(1) brightness(0.3); opacity:0.5;";
+        slot.innerHTML = `
+            <img src="https://paulie0102-bear.github.io/Bear/img/mega/${data.id}.png" style="width:70px; image-rendering:pixelated; ${imgStyle}">
+            <div style="font-size:12px; margin-top:5px; color:${isUnlocked ? 'gold' : '#666'}">${data.name}</div>
+            <div style="font-size:10px; color:#888;">${owned.length}/${data.req.length}</div>
+        `;
+
+        slot.title = isUnlocked ? "點擊配戴此勳章" : `缺少：${missingNames.join('、')}`;
+
+        if (isUnlocked) {
+            slot.onclick = () => selectBadge(data.id);
+        }
+        grid.appendChild(slot);
+    });
+}
+
+function selectBadge(badgeId) {
+    s.selectedBadge = badgeId;
+    alert("配戴成功！");
+    closeBadgeModal();
+    updateUI(); // 確保主介面更新
+}
+
+function closeBadgeModal() {
+    document.getElementById('badgeModal').style.display = "none";
+}
+
+
+
+function checkTaskReset() {
     const now = new Date();
-    const today = now.toDateString();
+    const today = now.toDateString(); // 取得今天的標記 (e.g., "Thu Mar 12 2026")
     
-    // 2. 計算週一標記
-    const tempDate = new Date(now.getTime()); 
+    // --- [ 修正部分：使用副本計算週一 ] ---
+    const tempDate = new Date(now); 
     const day = tempDate.getDay(); 
-    const diff = tempDate.getDate() - day + (day === 0 ? -6 : 1);
-    tempDate.setDate(diff);
-    const mondayDate = tempDate.toDateString();
+    const diff = tempDate.getDate() - day + (day === 0 ? -6 : 1); 
+    // 使用 tempDate 計算，不會影響到下面每日判定用的 now
+    const mondayDate = new Date(tempDate.setDate(diff)).toDateString();
 
     let hasChanged = false;
 
-    // 3. 每日重置判定
+    // 1. 每日重置判定
     if (s.tasks.dailyDate !== today) {
-        console.log(`%c📅 每日重置成功 | ${today}`, "color: white; background: #2ecc71; padding: 2px 5px; border-radius: 3px; font-weight: bold;");
         s.tasks.dailyDate = today;
         s.tasks.dRec = 0;   
         s.tasks.dCatch = 0; 
-        s.tasks.claimed = (s.tasks.claimed || []).filter(id => !id.includes('daily'));
+
+        // ✅ 加入建議：同步重置每日野生怪標記
+        if (s.dailyWild) {
+            s.dailyWild.claimed = false;
+        }
+
+        // 過濾掉所有包含 'daily' 字眼的已領取 ID
+        s.tasks.claimed = s.tasks.claimed.filter(id => !id.includes('daily'));
         hasChanged = true;
     }
 
-    // 4. 每週重置判定
+    // 2. 每週重置判定 (每週一重置)
     if (s.tasks.weeklyDate !== mondayDate) {
-        console.log(`%c🗓️ 每週重置成功 | 週一標記: ${mondayDate}`, "color: white; background: #3498db; padding: 2px 5px; border-radius: 3px; font-weight: bold;");
         s.tasks.weeklyDate = mondayDate;
         s.tasks.wRec = 0;   
         s.tasks.wCatch = 0; 
-        s.tasks.claimed = (s.tasks.claimed || []).filter(id => !id.includes('weekly'));
+
+        // 過濾掉所有包含 'weekly' 字眼的已領取 ID
+        s.tasks.claimed = s.tasks.claimed.filter(id => !id.includes('weekly'));
         hasChanged = true;
     }
 
-    // 5. 冠軍資格檢查 (偵錯用)
-    const currentAge = (typeof getAccountAge === 'function') ? getAccountAge() : 0;
-    console.log(`%c🏆 任務資格檢查`, "color: #b8860b; font-weight: bold;");
-    console.log(`[帳號天數]：${currentAge} / 100 天`);
-
-    // 6. 存檔與 UI 更新
     if (hasChanged) {
-        localStorage.setItem('pokemaster_v60', JSON.stringify(s));
-        if (typeof renderTasks === "function") renderTasks();
+        saveGameData(); // 🏆 呼叫你剛剛寫的這個函式
+        
+        if (typeof renderTasks === 'function') renderTasks();
+        if (typeof updateUI === 'function') updateUI();
+        if (typeof updateGiftButtons === 'function') updateGiftButtons();
+        
+        console.log("📅 [系統] 偵測到跨日，已自動存檔並重置任務。");
     }
-}
+
+};
 
 // 新增第二個參數 isChampion，預設為 false
 function openGiftSelector(docKey, isChampion = false) {
@@ -1336,10 +1437,18 @@ function openGiftSelector(docKey, isChampion = false) {
 function lockClaimedGifts() {
     if (!s.claimedGifts) return;
     
-    // 同時檢查天數，更新冠軍按鈕狀態
     const days = getAccountAge();
     const champions = ['red', 'lance', 'steven', 'cynthia'];
 
+    // 1. 定義每個冠軍專屬的台詞
+    const championMessages = {
+        'red': '赤紅正在白銀山巔修練...',
+        'lance': '龍之使者的試煉尚未開啟',
+        'steven': '大吾正忙於挖掘罕見原石',
+        'cynthia': '竹蘭正在調查神奧的神話'
+    };
+
+    // 處理已領取的獎勵
     s.claimedGifts.forEach(docKey => {
         const btn = document.getElementById(`btn-gift-${docKey}`);
         if (btn) {
@@ -1349,12 +1458,16 @@ function lockClaimedGifts() {
         }
     });
 
-    // 額外處理：若未滿 100 天，自動鎖定冠軍按鈕並顯示剩餘天數
+    // 2. 處理未滿 100 天的冠軍按鈕
     champions.forEach(key => {
         const btn = document.getElementById(`btn-gift-${key}`);
         if (btn && !s.claimedGifts.includes(key) && days < 100) {
-            btn.disabled = true;
-            btn.innerText = `🔒 剩餘 ${100 - days} 天`;
+            btn.disabled = false; // 保持可以點擊
+            btn.style.opacity = "1"; // 確保不是灰底
+            
+            // 💡 關鍵：根據 key 抓取台詞，並補上剩餘天數
+            const msg = championMessages[key] || "冠軍的認可";
+            btn.innerText = `🔒 ${msg} (剩 ${100 - days} 天)`;
         }
     });
 }
@@ -1439,6 +1552,8 @@ window.onChampionBtnClick = function(key) {
 };
 
 
+
+// 2. 在 updateUI 附近加入這三個載具專用函式
 function initCarrier() {
     const savedCarrier = localStorage.getItem('user_carrier');
     if (savedCarrier) {
@@ -1446,7 +1561,7 @@ function initCarrier() {
         renderBarcode(savedCarrier);
     }
 }
-    
+
 function saveCarrier() {
     let code = document.getElementById('carrierInput').value.trim().toUpperCase();
     
@@ -1582,6 +1697,31 @@ function updateUI() {
     if (typeof renderBag === 'function') renderBag();
     // 🚩 [新增] 在所有 UI 更新完後，執行每日野怪的判斷與渲染
     renderDailyWild();
+    const badgeImg = document.getElementById('current-badge-img');
+    const noBadgeTxt = document.getElementById('no-badge-txt');
+    
+    // 確保這兩個 HTML 元素存在
+    if (badgeImg && noBadgeTxt) {
+        if (s.selectedBadge) {
+            const newSrc = `https://paulie0102-bear.github.io/Bear/img/mega/${s.selectedBadge}.png`;
+            
+            // 只有在路徑不同時才更新，避免閃爍
+            if (badgeImg.src !== newSrc) {
+                badgeImg.src = newSrc;
+            }
+            
+            badgeImg.style.display = "block";
+            noBadgeTxt.style.display = "none";
+            
+            console.log("✅ 勳章已渲染:", newSrc);
+        } else {
+            badgeImg.style.display = "none";
+            noBadgeTxt.style.display = "block";
+        }
+    } else {
+        console.error("❌ 找不到勳章顯示元素！請檢查 HTML ID 是否正確。");
+    }
+
 }
 
 function renderDailyWild() {
@@ -2044,6 +2184,15 @@ async function throwBall() {
         s.tasks.wCatch += 1;
         s.tasks.mCatch += 1;
         
+
+        // 在你的原本捕捉函式最後面加入
+if (isSuccess) {
+    s.owned.push(curE.id);
+    checkBadgeUnlockAnnounce(); // 每次抓到寶可夢都自動檢查是否湊齊勳章
+    save(); // 存檔
+    updateUI();
+}
+
         // 🏆 [關鍵新增]：每日奇遇任務達成！
         // 只要這行被執行，今天主畫面的驚喜寶可夢就不會再出現了
         if (s.dailyWild) {
@@ -2075,6 +2224,30 @@ async function throwBall() {
     updateUI();
     if (typeof updateGiftButtons === 'function') updateGiftButtons();
 }
+
+// 檢查並提示解鎖
+function checkBadgeUnlockAnnounce() {
+    Object.keys(BADGE_DATA).forEach(key => {
+        const data = BADGE_DATA[key];
+        // 檢查是否集齊
+        const isAllCaught = data.req.every(id => s.owned.includes(id));
+        
+        // 如果集齊了，且之前還沒紀錄過「已通知解鎖」
+        if (isAllCaught && !s[`badge_${key}_unlocked`]) {
+            s[`badge_${key}_unlocked`] = true; // 標記為已解鎖
+            
+            // 彈出華麗的驚喜提示
+            alert(`🏆 恭喜！你已集齊 ${data.name} 所需的神獸，冠軍徽章已解鎖！`);
+            
+            // 如果勳章館開著，就順便刷新它
+            if (document.getElementById('badgeModal').style.display === "block") {
+                openBadgeModal(); 
+            }
+            updateUI();
+        }
+    });
+}
+
 
 // --- 戰鬥結束 ---
 function endBattle(text) {
@@ -2769,6 +2942,13 @@ function updateGiftButtons() {
         'cynthia': '神奧地區｜竹蘭的遺跡之魂'
     };
 
+    const lockMessages = {
+    'red': '赤紅正在白銀山巔修練...',
+    'lance': '龍之使者的試煉尚未開啟',
+    'steven': '大吾正忙於挖掘罕見原石',
+    'cynthia': '竹蘭正在調查神奧的神話'
+};
+
     [...doctorKeys, ...championKeys].forEach(key => {
         const btn = document.getElementById(`btn-gift-${key}`);
         if (!btn) return;
@@ -2824,23 +3004,30 @@ function updateGiftButtons() {
                 `;
                 btn.style.border = "1.5px solid #bdc3c7";
                 btn.style.background = "#f2f2f2";
-            } else if (days < 100) {
-                btn.disabled = true;
-                // 維持 CSS 原始定義的「封印」樣式 (灰色虛線)
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px; padding: 4px;">
-                        <div style="width:40px; filter:drop-shadow(0 0 3px rgba(218,165,32,0.4));"><img src="${imgUrl}" style="width:100%"></div>
-                        <div style="font-weight:bold; font-size:14px; color:#d4af37; text-align:left;">${championNames[key]}</div>
-                    </div>
-                `;
-                btn.style.border = "1.5px solid #d4af37";
-                btn.style.background = "#fffdf0";
+           } else if (days < 100) {
+    btn.disabled = false;
+    
+    // 取得該格子的專屬文字，如果沒設定就顯示預設值
+    const customMsg = lockMessages[key] || `解鎖冠軍祝福`;
+
+    btn.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px; padding: 4px; opacity: 0.8;">
+            <div style="width:40px; filter:grayscale(1); opacity: 0.5;">
+                <img src="${imgUrl}" style="width:100%">
+            </div>
+            <div style="font-weight:bold; font-size:13px; color:#7f8c8d; text-align:left;">
+                <div style="color:#e74c3c; font-size:11px;">🔒 距離認可還差 ${100 - days} 天</div>
+                <div>${customMsg}</div>
+            </div>
+        </div>
+    `;
+                btn.style.border = "1.5px dashed #bdc3c7"; // 使用虛線代表未解鎖
+                btn.style.background = "#fafafa";
                 btn.style.display = "block";
                 btn.style.width = "100%";
                 btn.style.marginBottom = "8px";
                 btn.style.borderRadius = "12px";
+                btn.style.cursor = "pointer"; // 顯示手指，暗示可以點擊看說明
             }
         }
     });
