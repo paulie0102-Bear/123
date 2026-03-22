@@ -1,0 +1,22 @@
+{
+  "name": "PokeMaster v60.0 - 終極記帳冒險",
+  "short_name": "PokeMaster",
+  "start_url": "/123/index.html",
+  "scope": "/123/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/123/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/123/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
