@@ -1428,6 +1428,7 @@ function checkMatches() {
 
     let board = battleData.board;
     let toMatch = new Set();
+    let currentTurnMatches = 0; // 新增：用來記錄這一輪同時消除了幾組
 
     // --- 橫向與縱向掃描 (維持你原本的邏輯) ---
     for (let r = 0; r < 6; r++) {
@@ -1438,6 +1439,7 @@ function checkMatches() {
             let id3 = board[idx + 2].pokemonId;
             if (id1 && id1 === id2 && id1 === id3) {
                 toMatch.add(idx); toMatch.add(idx + 1); toMatch.add(idx + 2);
+                currentTurnMatches++; // 發現一組橫向連線
             }
         }
     }
@@ -1449,12 +1451,13 @@ function checkMatches() {
             let id3 = board[idx + 12].pokemonId;
             if (id1 && id1 === id2 && id1 === id3) {
                 toMatch.add(idx); toMatch.add(idx + 6); toMatch.add(idx + 12);
+                currentTurnMatches++; // 發現一組縱向連線
             }
         }
     }
 
     if (toMatch.size > 0) {
-        handleElimination(toMatch);
+        handleElimination(toMatch, currentTurnMatches);
     } else {
         // --- 【關鍵修正】 Combo 結束時的處理 ---
         battleData.combo = 0;
@@ -1537,8 +1540,10 @@ function applyMegaSkill(matchSet, leaderId) {
         }
 }
 
-function handleElimination(matchSet) {
-    battleData.combo++;
+function handleElimination(matchSet, matchCount = 1) {
+    // 以前是 battleData.combo++; 
+    // 現在改為根據連線組數累加
+    battleData.combo += matchCount;
     const leaderId = gameState.team[0];
 
     // --- 關鍵插入點：先發動 Mega 技能擴張消除範圍 ---
@@ -2080,9 +2085,9 @@ function executeCatchLogic() {
     // 2. 處理捕捉結果與 UI 更新
     if (success) {
         // 成功邏輯
-        rateText.innerText = "成功捕獲！";
+        rateText.innerText = "成功收服！";
         rateText.style.color = "var(--accent-color)";
-        detailText.innerText = "已加入你的收藏名單";
+        detailText.innerText = "已加入寶可夢圖鑑";
         
         if (!gameState.captured.includes(pId)) {
             gameState.captured.push(pId);
@@ -2145,11 +2150,26 @@ function openPrep(p) {
     const formOptions = document.getElementById('prep-form-options');
     const keyOption = document.getElementById('prep-key-option');
 
-    // --- 修正：找回關卡專屬的 Mega 標記 ---
-    if (stageName) {
-        let megaTag = p.hasMega ? `<span style="background:linear-gradient(135deg,#ffcc00,#ff6600); color:black; padding:2px 6px; border-radius:4px; font-size:10px; margin-left:8px; font-weight:bold; box-shadow:0 0 5px rgba(255,204,0,0.5);">MEGA</span>` : "";
-        stageName.innerHTML = p.name + megaTag;
-    }
+// --- 修正：使用 flex-nowrap 確保手機與電腦都水平排列 ---
+if (stageName) {
+    const bossSpriteUrl = `https://paulie0102-bear.github.io/Bear/shuffle/${p.id}.png`;
+    
+    let megaTag = p.hasMega ? `<span style="background:linear-gradient(135deg,#ffcc00,#ff6600); color:black; padding:1px 4px; border-radius:4px; font-size:10px; margin-left:5px; font-weight:bold; white-space:nowrap;">MEGA</span>` : "";
+    
+    // 增加 white-space: nowrap 和 flex-nowrap
+    stageName.innerHTML = `
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 5px 0; width: 100%; flex-wrap: nowrap;">
+            <img src="${bossSpriteUrl}" style="width: 45px; height: 45px; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+            <div style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div style="font-size: 16px; font-weight: bold; color: #fff; line-height: 1.2; display: flex; align-items: center;">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.name}</span>
+                    ${megaTag}
+                </div>
+                <div style="font-size: 9px; color: #888; margin-top: 1px;">BOSS TARGET</div>
+            </div>
+        </div>
+    `;
+}
     
     // 1. 判定目標 HP (模式分流)
     let hp = 3000;
@@ -2690,10 +2710,15 @@ function manualLoad() {
     </div>
 </div>
 
-        <div style="display:flex; flex-direction:column; gap:12px;">
-            <button onclick="startBattleLogic()" style="padding:18px; background:var(--accent-color); border:none; border-radius:35px; font-size:18px; font-weight:bold; color:black;">開始戰鬥 (❤️ 1)</button>
-            <button onclick="closePrep()" style="padding:12px; background:transparent; border:1px solid #555; color:#888; border-radius:35px;">返回地圖</button>
-        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; width: 100%; margin-top: 5px;">
+    <button onclick="startBattleLogic()" style="width: 100%; padding: 12px; background: var(--accent-color); border: none; border-radius: 35px; font-size: 17px; font-weight: bold; color: black; cursor: pointer;">
+        開始戰鬥 (❤️ 1)
+    </button>
+    
+    <button onclick="closePrep()" style="width: 100%; padding: 12px; background: transparent; border: 1px solid #555; color: #888; border-radius: 35px; font-size: 15px; cursor: pointer;">
+        返回地圖
+    </button>
+</div>
     </div>
 </div>
 
